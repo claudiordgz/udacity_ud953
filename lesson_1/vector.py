@@ -7,6 +7,7 @@ getcontext().prec = 30
 
 class Vector(object):
     CANNOT_NORMALIZE_ZERO_VECTOR = 'Cannot normalize the zero vector'
+    NO_UNIQUE_PARALLEL_COMPONENT_MSG = 'No unique parallel component'
 
     def __init__(self, coordinates):
         try:
@@ -92,6 +93,27 @@ class Vector(object):
     def is_orthogonal(self, v, tolerance=1e-10):
         return abs(self.dot(v)) < tolerance
 
+    def component_orthogonal_to(self, basis):
+        try:
+            projection = self.component_parallel_to(basis)
+            return self.minus(projection)
+        except Exception as e:
+            if str(e) == self.NO_UNIQUE_PARALLEL_COMPONENT_MSG:
+                raise Exception(self.NO_UNIQUE_PARALLEL_COMPONENT_MSG)
+            else:
+                raise e
+
+    def component_parallel_to(self, basis):
+        try:
+            u = basis.normalize()
+            weight = self.dot(u)
+            return u.times_scalar(weight)
+        except Exception as e:
+            if str(e) == self.CANNOT_NORMALIZE_ZERO_VECTOR:
+                raise Exception(self.CANNOT_NORMALIZE_ZERO_VECTOR)
+            else:
+                raise e
+
 
 def test():
     v1 = Vector([8.218, -9.341])
@@ -114,6 +136,23 @@ def test():
     print v1.is_parallel(v1)
 
 
+def coding_vector_projections_quiz():
+    v1 = Vector([3.039, 1.879])
+    b1 = Vector([0.825, 2.036])
+    print v1.component_parallel_to(b1)
+
+    v2 = Vector([-9.88, -3.264, -8.159])
+    b2 = Vector([-2.155, -9.353, -9.473])
+    print v2.component_orthogonal_to(b2)
+
+    v3 = Vector([3.009, -6.172, 3.692, -2.51])
+    b3 = Vector([6.404, -9.144, 2.759, 8.718])
+    vpar = v3.component_parallel_to(b3)
+    vort = v3.component_orthogonal_to(b3)
+    print vpar
+    print vort
+
+
 def checking_parallel_orthogonal_quiz():
     v1 = Vector([-7.579, -7.88])
     w1 = Vector([22.737, 23.64])
@@ -132,6 +171,7 @@ def checking_parallel_orthogonal_quiz():
 def main():
     test()
     checking_parallel_orthogonal_quiz()
+    coding_vector_projections_quiz()
 
 
 if __name__ == '__main__':
