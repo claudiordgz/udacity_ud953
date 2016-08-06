@@ -4,10 +4,11 @@ import numpy as np
 
 getcontext().prec = 30
 
-
 class Vector(object):
+
     CANNOT_NORMALIZE_ZERO_VECTOR = 'Cannot normalize the zero vector'
     NO_UNIQUE_PARALLEL_COMPONENT_MSG = 'No unique parallel component'
+    ONLY_DEFINED_IN_TWO_THREE_DIMS_MSG = 'Only defined in two three dimensions'
 
     def __init__(self, coordinates):
         try:
@@ -38,16 +39,16 @@ class Vector(object):
         return self.coordinates == v.coordinates
 
     def plus(self, v):
-        return Vector([x + y for x, y in zip(self.coordinates, v.coordinates)])
+        return Vector([x+y for x,y in zip(self.coordinates, v.coordinates)])
 
     def minus(self, v):
-        return Vector([x - y for x, y in zip(self.coordinates, v.coordinates)])
+        return Vector([x-y for x,y in zip(self.coordinates, v.coordinates)])
 
     def __mul__(self, other):
         if isinstance(other, list):
             pass
         else:
-            return Vector([x * Decimal(other) for x in self.coordinates])
+            return Vector([x*Decimal(other) for x in self.coordinates])
 
     def magnitude(self):
         return Decimal(math.sqrt(sum([i ** 2 for i in self.coordinates])))
@@ -55,15 +56,15 @@ class Vector(object):
     def normalize(self):
         try:
             magnitude = self.magnitude()
-            return self.times_scalar(Decimal('1.0') / magnitude)
+            return self.times_scalar(Decimal('1.0')/magnitude)
         except ZeroDivisionError:
             raise Exception(self.CANNOT_NORMALIZE_ZERO_VECTOR)
 
     def times_scalar(self, c):
-        return Vector([Decimal(c) * x for x in self.coordinates])
+        return Vector([Decimal(c)*x for x in self.coordinates])
 
     def dot(self, v):
-        return sum([x * y for x, y in zip(self.coordinates, v.coordinates)])
+        return sum([x*y for x,y in zip(self.coordinates, v.coordinates)])
 
     def angle_within(self, v, in_degrees=False):
         try:
@@ -82,15 +83,15 @@ class Vector(object):
                 raise e
 
     def is_parallel(self, v):
-        return (self.is_zero() or
-                v.is_zero() or
-                self.angle_within(v) == 0 or
-                self.angle_within(v) == math.pi)
+        return ( self.is_zero() or
+                 v.is_zero() or
+                 self.angle_within(v) == 0 or
+                 self.angle_within(v) == math.pi)
 
     def is_zero(self, tolerance=1e-10):
         return self.magnitude() < tolerance
 
-    def is_orthogonal(self, v, tolerance=1e-10):
+    def is_orthogonal(self,v, tolerance=1e-10):
         return abs(self.dot(v)) < tolerance
 
     def component_orthogonal_to(self, basis):
@@ -114,6 +115,32 @@ class Vector(object):
             else:
                 raise e
 
+    def cross(self, v):
+        try:
+            x_1, y_1, z_1 = self.coordinates
+            x_2, y_2, z_2 = v.coordinates
+            new_coordinates = [ y_1*z_2 - y_2*z_1,
+                                -(x_1*z_2 - x_2*z_1),
+                                x_1*y_2 - x_2*y_1 ]
+            return Vector(new_coordinates)
+        except ValueError as e:
+            msg = str(e)
+            if msg == 'need more than 2 values to unpack':
+                self_embedded_in_R3 = Vector(self.coordinates + ('0',))
+                v_embedded_in_R3 = Vector(v.coordinates + ('0',))
+                return self_embedded_in_R3, v_embedded_in_R3
+            elif (msg == 'too many values to unpack' or
+                  msg == 'need more than 1 value to unpack'):
+                raise Exception(self.ONLY_DEFINED_IN_TWO_THREE_DIMS_MSG)
+            else:
+                raise e
+
+    def area_of_parallelogram_with(self,w):
+        return self.cross(w).magnitude()
+
+    def area_of_triangle_with(self,w):
+        return self.cross(w).magnitude() / 2
+
 
 def test():
     v1 = Vector([8.218, -9.341])
@@ -127,8 +154,8 @@ def test():
     print(v3.minus(v4))
     print(v5 * 7.41)
     print int(math.ceil(v.magnitude())) == 1
-    print Vector([-0.221, 7.437]).magnitude()
-    print Vector([8.813, -1.331, -6.247]).magnitude()
+    print Vector([-0.221,7.437]).magnitude()
+    print Vector([8.813, -1.331,-6.247]).magnitude()
     print Vector([5.581, -2.136]).normalize()
     print Vector([1.996, 3.108, -4.554]).normalize()
     print v1.is_orthogonal(v2)
@@ -137,16 +164,16 @@ def test():
 
 
 def coding_vector_projections_quiz():
-    v1 = Vector([3.039, 1.879])
-    b1 = Vector([0.825, 2.036])
+    v1 = Vector([3.039,1.879])
+    b1 = Vector([0.825,2.036])
     print v1.component_parallel_to(b1)
 
-    v2 = Vector([-9.88, -3.264, -8.159])
-    b2 = Vector([-2.155, -9.353, -9.473])
+    v2 = Vector([-9.88,-3.264,-8.159])
+    b2 = Vector([-2.155,-9.353,-9.473])
     print v2.component_orthogonal_to(b2)
 
-    v3 = Vector([3.009, -6.172, 3.692, -2.51])
-    b3 = Vector([6.404, -9.144, 2.759, 8.718])
+    v3 = Vector([3.009,-6.172,3.692,-2.51])
+    b3 = Vector([6.404,-9.144,2.759,8.718])
     vpar = v3.component_parallel_to(b3)
     vort = v3.component_orthogonal_to(b3)
     print vpar
@@ -157,22 +184,34 @@ def checking_parallel_orthogonal_quiz():
     v1 = Vector([-7.579, -7.88])
     w1 = Vector([22.737, 23.64])
     v2 = Vector([-2.029, 9.97, 4.172])
-    w2 = Vector([-9.231, -6.639, -7.245])
-    v3 = Vector([-2.328, -7.284, -1.214])
-    w3 = Vector([-1.821, 1.072, -2.94])
-    v4 = Vector([2.118, 4.827])
-    w4 = Vector([0, 0])
+    w2 = Vector([-9.231,-6.639,-7.245])
+    v3 = Vector([-2.328,-7.284,-1.214])
+    w3 = Vector([-1.821,1.072,-2.94])
+    v4 = Vector([2.118,4.827])
+    w4 = Vector([0,0])
 
-    for i, j in zip([v1, v2, v3, v4], [w1, w2, w3, w4]):
+    for i,j in zip([v1,v2,v3,v4],[w1,w2,w3,w4]):
         print(i.is_parallel(j))
         print(i.is_orthogonal(j))
+
+
+def cross_product_quiz():
+    v1 = Vector([8.462,7.893,-8.187])
+    w1 = Vector([6.984,-5.975,4.778])
+    print v1.cross(w1)
+    v2 = Vector([-8.987,-9.838,5.031])
+    w2 = Vector([-4.268,-1.861,-8.866])
+    print v2.area_of_parallelogram_with(w2)
+    v3 = Vector([1.5,9.547,3.691])
+    w3 = Vector([-6.007,0.124,5.772])
+    print v3.area_of_triangle_with(w3)
 
 
 def main():
     test()
     checking_parallel_orthogonal_quiz()
     coding_vector_projections_quiz()
-
+    cross_product_quiz()
 
 if __name__ == '__main__':
     main()
