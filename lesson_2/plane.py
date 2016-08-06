@@ -1,6 +1,6 @@
 from decimal import Decimal, getcontext
 
-from vector import Vector
+from lesson_1 import Vector
 
 getcontext().prec = 30
 
@@ -93,7 +93,55 @@ class Plane(object):
                 return k
         raise Exception(Plane.NO_NONZERO_ELTS_FOUND_MSG)
 
+    def is_parallel_to(self, plane):
+        n1 = self.normal_vector
+        n2 = plane.normal_vector
+        return n1.is_parallel(n2)
+
+    def __eq__(self, plane):
+
+        if self.normal_vector.is_zero():
+            if not plane.normal_vector.is_zero():
+                return False
+            else:
+                diff = self.constant_term - plane.constant_term
+                return MyDecimal(diff).is_near_zero()
+        elif plane.normal_vector.is_zero():
+            return False
+
+        if not self.is_parallel_to(plane):
+            return False
+
+        x0 = self.basepoint
+        y0 = plane.basepoint
+        basepoint_difference = x0.minus(y0)
+        n = self.normal_vector
+        return basepoint_difference.is_orthogonal(n)
+
+
+
 
 class MyDecimal(Decimal):
     def is_near_zero(self, eps=1e-10):
         return abs(self) < eps
+
+
+def planes_quiz():
+    print('planes quiz')
+    p1 = Plane(normal_vector=Vector(['-0.412','3.806','0.728']), constant_term='-3.46')
+    p2 = Plane(normal_vector=Vector(['1.03','-9.515','-1.82']), constant_term='8.65')
+    print('Parallel?', p1.is_parallel_to(p2))
+    print('Are equal?', p1 == p2)
+
+    p3 = Plane(normal_vector=Vector(['2.611','5.528','0.283']), constant_term='4.6')
+    p4 = Plane(normal_vector=Vector(['7.715','8.306','5.342']), constant_term='3.76')
+    print('Parallel?', p3.is_parallel_to(p4))
+    print('Are equal?', p3 == p4)
+
+    p5 = Plane(normal_vector=Vector(['-7.926','8.625','-7.212']), constant_term='-7.952')
+    p6 = Plane(normal_vector=Vector(['-2.642','2.875','-2.404']), constant_term='-2.443')
+    print('Parallel?', p5.is_parallel_to(p6))
+    print('Are equal?', p5 == p6)
+
+if __name__ == '__main__':
+    planes_quiz()
