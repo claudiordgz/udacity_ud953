@@ -39,19 +39,19 @@ class Vector(object):
         return self.coordinates == v.coordinates
 
     def plus(self, v):
-        return Vector([x+y for x,y in zip(self.coordinates, v.coordinates)])
+        return Vector([x+y for x,y in zip(self, v)])
 
     def minus(self, v):
-        return Vector([x-y for x,y in zip(self.coordinates, v.coordinates)])
+        return Vector([x-y for x,y in zip(self, v)])
 
     def __mul__(self, other):
         if isinstance(other, list):
             pass
         else:
-            return Vector([x*Decimal(other) for x in self.coordinates])
+            return Vector([x*Decimal(other) for x in self])
 
     def magnitude(self):
-        return Decimal(math.sqrt(sum([i ** 2 for i in self.coordinates])))
+        return Decimal(math.sqrt(sum([i ** 2 for i in self])))
 
     def normalize(self):
         try:
@@ -61,10 +61,10 @@ class Vector(object):
             raise Exception(self.CANNOT_NORMALIZE_ZERO_VECTOR)
 
     def times_scalar(self, c):
-        return Vector([Decimal(c)*x for x in self.coordinates])
+        return Vector([Decimal(c)*x for x in self])
 
     def dot(self, v):
-        return sum([x*y for x,y in zip(self.coordinates, v.coordinates)])
+        return sum([x*y for x,y in zip(self, v)])
 
     def angle_within(self, v, in_degrees=False):
         try:
