@@ -64,6 +64,34 @@ class Vector(object):
     def dot(self, v):
         return sum([x * y for x, y in zip(self.coordinates, v.coordinates)])
 
+    def angle_within(self, v, in_degrees=False):
+        try:
+            u1 = self.normalize()
+            u2 = v.normalize()
+            angle_in_radians = math.acos(np.clip(u1.dot(u2), -1.0, 1.0))
+            if in_degrees:
+                degrees_per_radian = 180. / math.pi
+                return angle_in_radians * degrees_per_radian
+            else:
+                return angle_in_radians
+        except Exception as e:
+            if str(e) == self.CANNOT_NORMALIZE_ZERO_VECTOR:
+                raise Exception('Cannot compute an angle with the zero vector')
+            else:
+                raise e
+
+    def is_parallel(self, v):
+        return (self.is_zero() or
+                v.is_zero() or
+                self.angle_within(v) == 0 or
+                self.angle_within(v) == math.pi)
+
+    def is_zero(self, tolerance=1e-10):
+        return self.magnitude() < tolerance
+
+    def is_orthogonal(self, v, tolerance=1e-10):
+        return abs(self.dot(v)) < tolerance
+
 
 def test():
     v1 = Vector([8.218, -9.341])
@@ -81,10 +109,29 @@ def test():
     print Vector([8.813, -1.331, -6.247]).magnitude()
     print Vector([5.581, -2.136]).normalize()
     print Vector([1.996, 3.108, -4.554]).normalize()
+    print v1.is_orthogonal(v2)
+    print v1.is_parallel(v2)
+    print v1.is_parallel(v1)
+
+
+def checking_parallel_orthogonal_quiz():
+    v1 = Vector([-7.579, -7.88])
+    w1 = Vector([22.737, 23.64])
+    v2 = Vector([-2.029, 9.97, 4.172])
+    w2 = Vector([-9.231, -6.639, -7.245])
+    v3 = Vector([-2.328, -7.284, -1.214])
+    w3 = Vector([-1.821, 1.072, -2.94])
+    v4 = Vector([2.118, 4.827])
+    w4 = Vector([0, 0])
+
+    for i, j in zip([v1, v2, v3, v4], [w1, w2, w3, w4]):
+        print(i.is_parallel(j))
+        print(i.is_orthogonal(j))
 
 
 def main():
     test()
+    checking_parallel_orthogonal_quiz()
 
 
 if __name__ == '__main__':
