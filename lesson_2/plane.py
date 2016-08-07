@@ -109,7 +109,9 @@ class Plane(object):
         elif plane.normal_vector.is_zero():
             return False
 
-        if not self.is_parallel_to(plane):
+        if self.__str__() == plane.__str__():
+            return True
+        elif not self.is_parallel_to(plane):
             return False
 
         x0 = self.basepoint
